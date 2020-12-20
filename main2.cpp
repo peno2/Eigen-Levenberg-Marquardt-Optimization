@@ -9,6 +9,7 @@ double warp2(const Eigen::VectorXd &x) { return  fabs(x(0) - 16) + fabs(x(1) - 8
 double warp3(const Eigen::VectorXd &x) { return  fabs(x(0) - 15) + fabs(x(1) - 7) + fabs(x(2) + 9); }
 }
 
+constexpr int noOfParams = 2;
 // Generic functor
 template<typename Scalar_, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
 struct Functor {
@@ -32,9 +33,9 @@ struct Functor {
 };
 
 struct my_functor : Functor<double> {
-  my_functor(): Functor<double>(3,3) {}
+  my_functor(): Functor<double>(noOfParams, noOfParams) {}
   int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const {
-    fvec(0) = warp3(x); //fabs(x(0)+30) +  fabs(x(1)*x(1)-25);
+    fvec(0) = warp2(x);
     fvec(1) = 0;
 
     return 0;
@@ -43,7 +44,7 @@ struct my_functor : Functor<double> {
 
 
 int main(int argc, char *argv[]) {
-  Eigen::VectorXd x(3);
+  Eigen::VectorXd x(noOfParams);
   std::cout << "x:\n" << x << std::endl;
 
   const my_functor functor;

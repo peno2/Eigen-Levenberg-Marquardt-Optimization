@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-
+#include <cassert>
 #include <Eigen/Eigen>
 
 #include <unsupported/Eigen/NonLinearOptimization>
@@ -10,13 +10,15 @@
 
 struct LMFunctor
 {
-  LMFunctor(Eigen::MatrixXf measuredValuesIn, int mIn, int nIn): measuredValues(measuredValuesIn), m(mIn), n(nIn) {}
+  LMFunctor(Eigen::MatrixXf measuredValuesIn, int nIn): measuredValues(measuredValuesIn), n(nIn) {}
 	// 'm' pairs of (x, f(x))
 	Eigen::MatrixXf measuredValues;
 
 	// Compute 'm' errors, one for each data point, for the given parameter values in 'x'
 	int operator()(const Eigen::VectorXf &x, Eigen::VectorXf &fvec) const
 	{
+	  std::cout << "fvec.size(): " << fvec.size() << std::endl;
+	  
 		// 'x' has dimensions n x 1
 		// It contains the current estimates for the parameters.
 
@@ -29,12 +31,16 @@ struct LMFunctor
 
 		// Now, min error is 2.
 		fvec(0) = fabs(aParam - 15) + fabs(bParam - 7) + fabs(cParam + 9) + 2;
+		//fvec(0) = fabs(aParam - 15);
+		//fvec(1) = fabs(bParam - 7);
+		//fvec(2) = fabs(cParam + 9) + 2;
 		return 0;
 	}
 
 	// Compute the jacobian of the errors
 	int df(const Eigen::VectorXf &x, Eigen::MatrixXf &fjac) const
 	{
+	  assert(x.size() == n);
 		// 'x' has dimensions n x 1
 		// It contains the current estimates for the parameters.
 
@@ -66,10 +72,10 @@ struct LMFunctor
 	}
 
 	// Number of data points, i.e. values.
-	int m;
+	//int m;
 
 	// Returns 'm', the number of values.
-	int values() const { return m; }
+	int values() const { return measuredValues.rows(); }
 
 	// The number of parameters, i.e. inputs.
 	int n;
@@ -149,7 +155,7 @@ int main(int argc, char *argv[])
 	// Create a LevenbergMarquardt object and pass it the functor.
 	//
 
-	LMFunctor functor(measuredValues, m, n);
+	LMFunctor functor(measuredValues, x.size());
 	std::cout << "m: " << m << ", n: " << n << std::endl;
 
 	Eigen::LevenbergMarquardt<LMFunctor, float> lm(functor);
@@ -165,9 +171,9 @@ int main(int argc, char *argv[])
 	std::cout << "\tb: " << x(1) << std::endl;
 	std::cout << "\tc: " << x(2) << std::endl;
 
-	Eigen::VectorXf fvec(1);
-	functor(x, fvec);
-	std::cout << "\terr: " << fvec(0) << std::endl;
+	//Eigen::VectorXf fvec(1);
+	//functor(x, fvec);
+	//std::cout << "\terr: " << fvec(0) << std::endl;
 
 	return 0;
 }

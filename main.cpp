@@ -7,17 +7,19 @@
 
 #include <unsupported/Eigen/NonLinearOptimization>
 
+double warp2(const Eigen::VectorXf &x) { return  fabs(x(0) - 16) + fabs(x(1) - 8); }
+double warp3(const Eigen::VectorXf &x) { return  fabs(x(0) - 15) + fabs(x(1) - 7) + fabs(x(2) + 9); }
 
 struct LMFunctor
 {
-  LMFunctor(Eigen::MatrixXf measuredValuesIn, int nIn): measuredValues(measuredValuesIn), n(nIn) {}
+  LMFunctor(int mIn, int nIn): m(mIn), n(nIn) {}
 	// 'm' pairs of (x, f(x))
-	Eigen::MatrixXf measuredValues;
+	//Eigen::MatrixXf measuredValues;
 
 	// Compute 'm' errors, one for each data point, for the given parameter values in 'x'
 	int operator()(const Eigen::VectorXf &x, Eigen::VectorXf &fvec) const
 	{
-	  std::cout << "fvec.size(): " << fvec.size() << std::endl;
+	  //std::cout << "fvec.size(): " << fvec.size() << std::endl;
 	  
 		// 'x' has dimensions n x 1
 		// It contains the current estimates for the parameters.
@@ -25,12 +27,8 @@ struct LMFunctor
 		// 'fvec' has dimensions m x 1
 		// It will contain the error for each data point.
 
-		float aParam = x(0);
-		float bParam = x(1);
-		float cParam = x(2);
-
-		// Now, min error is 2.
-		fvec(0) = fabs(aParam - 15) + fabs(bParam - 7) + fabs(cParam + 9) + 2;
+		fvec(0) = warp2(x);
+		//fvec(0) = warp3(x);
 		//fvec(0) = fabs(aParam - 15);
 		//fvec(1) = fabs(bParam - 7);
 		//fvec(2) = fabs(cParam + 9) + 2;
@@ -72,10 +70,10 @@ struct LMFunctor
 	}
 
 	// Number of data points, i.e. values.
-	//int m;
+	int m;
 
 	// Returns 'm', the number of values.
-	int values() const { return measuredValues.rows(); }
+	int values() const { return m; }
 
 	// The number of parameters, i.e. inputs.
 	int n;
@@ -105,39 +103,19 @@ int main(int argc, char *argv[])
 	// i.e. the measured value of 'f(x)'.
 	//
 
-	std::ifstream infile("measured_data.txt");
-	if (!infile) {
-		std::cout << "Unable to read file." << std::endl;
-		return -1;
-	}
-
-	std::vector<float> x_values;
-	std::vector<float> y_values;
-
-	std::string line;
-	int count=0;
-	while (getline(infile, line)){
-	  ++count;
-		std::istringstream ss(line);
-		float x, y;
-		ss >> x >> y;
-		x_values.push_back(x);
-		y_values.push_back(y);
-		if (count > 2) // 1 will give bad result.
-		  break;
-	}
-
 	// 'm' is the number of data points.
-	const int m = x_values.size();
+	const int m = 3;//x_values.size();
+
 
 	// Move the data into an Eigen Matrix.
 	// The first column has the input values, x. The second column is the f(x) values.
+#if 0
 	Eigen::MatrixXf measuredValues(m, 2);
 	for (int i = 0; i < m; ++i) {
-		measuredValues(i, 0) = x_values[i];
-		measuredValues(i, 1) = y_values[i];
+	  measuredValues(i, 0) = 0;//x_values[i];
+	  measuredValues(i, 1) = 0;//y_values[i];
 	}
-
+#endif
 	// 'n' is the number of parameters in the function.
 	// f(x) = a(x^2) + b(x) + c has 3 parameters: a, b, c
 	const int n = 3;
@@ -146,30 +124,27 @@ int main(int argc, char *argv[])
 	// The parameters 'x' are also referred to as the 'inputs' in the context of LM optimization.
 	// The LM optimization inputs should not be confused with the x input values.
 	Eigen::VectorXf x(n);
-	x(0) = 0.0;             // initial value for 'a'
-	x(1) = 0.0;             // initial value for 'b'
-	x(2) = 0.0;             // initial value for 'c'
+	//x(0) = 0.0;             // initial value for 'a'
+	//x(1) = 0.0;             // initial value for 'b'
+	//x(2) = 0.0;             // initial value for 'c'
 
 	//
 	// Run the LM optimization
 	// Create a LevenbergMarquardt object and pass it the functor.
 	//
 
-	LMFunctor functor(measuredValues, x.size());
+	LMFunctor functor(m, x.size());
 	std::cout << "m: " << m << ", n: " << n << std::endl;
 
 	Eigen::LevenbergMarquardt<LMFunctor, float> lm(functor);
-	int status = lm.minimize(x);
+	const int status = lm.minimize(x);
 	std::cout << "LM optimization status: " << status << std::endl;
 
 	//
 	// Results
-	// The 'x' vector also contains the results of the optimization.
+	// The 'x' vector contains the results of the optimization.
 	//
-	std::cout << "Optimization results" << std::endl;
-	std::cout << "\ta: " << x(0) << std::endl;
-	std::cout << "\tb: " << x(1) << std::endl;
-	std::cout << "\tc: " << x(2) << std::endl;
+	std::cout << "Optimization results, x:\n" << x << std::endl;
 
 	//Eigen::VectorXf fvec(1);
 	//functor(x, fvec);

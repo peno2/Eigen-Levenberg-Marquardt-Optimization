@@ -22,14 +22,14 @@ struct Functor {
   using  ValueType = Eigen::Matrix<Scalar, ValuesAtCompileTime, 1>;
   using  JacobianType = Eigen::Matrix<Scalar, ValuesAtCompileTime, InputsAtCompileTime>;
 
-  int m_inputs, m_values;
-
-  Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
+  //Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
   Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
 
   int inputs() const { return m_inputs; }
   int values() const { return m_values; }
 
+private:
+  int m_inputs, m_values;
 };
 
 struct my_functor : Functor<double> {

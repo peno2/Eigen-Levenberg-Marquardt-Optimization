@@ -7,5 +7,6 @@ find_package (Eigen3 REQUIRED)
 include_directories (${EIGEN3_INCLUDE_DIR})
 
 add_executable (LMOptimize main.cpp)
+add_executable (LMOptimize2 main2.cpp)
 
 configure_file(measured_data.txt measured_data.txt COPYONLY)

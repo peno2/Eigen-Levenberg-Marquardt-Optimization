@@ -10,6 +10,7 @@
 
 struct LMFunctor
 {
+  LMFunctor(Eigen::MatrixXf measuredValuesIn, int mIn, int nIn): measuredValues(measuredValuesIn), m(mIn), n(nIn) {}
 	// 'm' pairs of (x, f(x))
 	Eigen::MatrixXf measuredValues;
 
@@ -43,7 +44,7 @@ struct LMFunctor
 		float epsilon;
 		epsilon = 1e-5f;
 
-		for (int i = 0; i < x.size(); i++) {
+		for (int i = 0; i < x.size(); ++i) {
 			Eigen::VectorXf xPlus(x);
 			xPlus(i) += epsilon;
 			Eigen::VectorXf xMinus(x);
@@ -108,28 +109,32 @@ int main(int argc, char *argv[])
 	std::vector<float> y_values;
 
 	std::string line;
+	int count=0;
 	while (getline(infile, line)){
+	  ++count;
 		std::istringstream ss(line);
 		float x, y;
 		ss >> x >> y;
 		x_values.push_back(x);
 		y_values.push_back(y);
+		if (count > 2) // 1 will give bad result.
+		  break;
 	}
 
 	// 'm' is the number of data points.
-	int m = x_values.size();
+	const int m = x_values.size();
 
 	// Move the data into an Eigen Matrix.
 	// The first column has the input values, x. The second column is the f(x) values.
 	Eigen::MatrixXf measuredValues(m, 2);
-	for (int i = 0; i < m; i++) {
+	for (int i = 0; i < m; ++i) {
 		measuredValues(i, 0) = x_values[i];
 		measuredValues(i, 1) = y_values[i];
 	}
 
 	// 'n' is the number of parameters in the function.
 	// f(x) = a(x^2) + b(x) + c has 3 parameters: a, b, c
-	int n = 3;
+	const int n = 3;
 
 	// 'x' is vector of length 'n' containing the initial values for the parameters.
 	// The parameters 'x' are also referred to as the 'inputs' in the context of LM optimization.
@@ -144,10 +149,8 @@ int main(int argc, char *argv[])
 	// Create a LevenbergMarquardt object and pass it the functor.
 	//
 
-	LMFunctor functor;
-	functor.measuredValues = measuredValues;
-	functor.m = m;
-	functor.n = n;
+	LMFunctor functor(measuredValues, m, n);
+	std::cout << "m: " << m << ", n: " << n << std::endl;
 
 	Eigen::LevenbergMarquardt<LMFunctor, float> lm(functor);
 	int status = lm.minimize(x);

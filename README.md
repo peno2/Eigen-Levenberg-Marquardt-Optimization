@@ -7,6 +7,9 @@ Check out the [blog post](https://medium.com/@sarvagya.vaish/levenberg-marquardt
 ```
 mkdir build
 cd build
+# Depending on how you set up your installation of eigen ...
+# An example follows:
+# cmake -DEIGEN3_INCLUDE_DIR=/home/peno/install/eigen/include/eigen3/ ..
 cmake ..
 make
 ./LMOptimize

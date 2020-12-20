@@ -26,12 +26,8 @@ struct LMFunctor
 		float bParam = x(1);
 		float cParam = x(2);
 
-		for (int i = 0; i < values(); i++) {
-			float xValue = measuredValues(i, 0);
-			float yValue = measuredValues(i, 1);
-
-			fvec(i) = yValue - (aParam * xValue * xValue + bParam * xValue + cParam);
-		}
+		// Now, min error is 2.
+		fvec(0) = fabs(aParam - 15) + fabs(bParam - 7) + fabs(cParam + 9) + 2;
 		return 0;
 	}
 
@@ -165,6 +161,10 @@ int main(int argc, char *argv[])
 	std::cout << "\ta: " << x(0) << std::endl;
 	std::cout << "\tb: " << x(1) << std::endl;
 	std::cout << "\tc: " << x(2) << std::endl;
+
+	Eigen::VectorXf fvec(1);
+	functor(x, fvec);
+	std::cout << "\terr: " << fvec(0) << std::endl;
 
 	return 0;
 }

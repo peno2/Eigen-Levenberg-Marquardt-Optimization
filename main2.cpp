@@ -1,5 +1,6 @@
 #include <iostream>
 #include <Eigen/Dense>
+#include <cassert>
 
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <unsupported/Eigen/NumericalDiff>
@@ -23,7 +24,9 @@ struct Functor {
   using  JacobianType = Eigen::Matrix<Scalar, ValuesAtCompileTime, InputsAtCompileTime>;
 
   //Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
-  Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
+  Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {
+    assert(m_inputs == 1);
+  }
 
   int inputs() const { return m_inputs; }
   int values() const { return m_values; }
@@ -33,10 +36,9 @@ private:
 };
 
 struct my_functor : Functor<double> {
-  my_functor(): Functor<double>(noOfParams, noOfParams) {}
+  my_functor(): Functor<double>(1, noOfParams) {}
   int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const {
     fvec(0) = warp2(x);
-    fvec(1) = 0;
 
     return 0;
   }
@@ -45,7 +47,7 @@ struct my_functor : Functor<double> {
 
 int main(int argc, char *argv[]) {
   Eigen::VectorXd x(noOfParams);
-  std::cout << "x:\n" << x << std::endl;
+  std::cout << "Inital value of x:\n" << x << std::endl;
 
   const my_functor functor;
   Eigen::NumericalDiff<my_functor> numDiff(functor);

@@ -50,7 +50,8 @@ int main(int argc, char *argv[]) {
   std::cout << "Inital value of x:\n" << x << std::endl;
 
   const my_functor functor;
-  Eigen::NumericalDiff<my_functor> numDiff(functor);
+  const double minEpsilon = 1;
+  Eigen::NumericalDiff<my_functor> numDiff(functor, minEpsilon);
   Eigen::LevenbergMarquardt<Eigen::NumericalDiff<my_functor>,double> lm(numDiff);
   lm.parameters.maxfev = 2000;
   lm.parameters.xtol = 1.0e-10;
